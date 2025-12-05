@@ -5,6 +5,22 @@ namespace topit {
   bool operator==(p_t, p_t);
   bool operator!=(p_t, p_t);
   struct f_t{p_t aa, bb};
+
+  struct IDraw{
+    virtual ~IDraw{}=default;
+    virtual p_t begin()const=0;
+    virtual p_t next()const=0;
+  };
+
+  struct Dot: IDraw{
+    Dot(int x, int y);
+    explicit Dot(p_t dd);
+    p_t begin() const override;
+    p_t next(p_t) const override;
+    p_t d;
+  };
+
+
 }
 
 
@@ -15,7 +31,20 @@ int main()
   std::cout << (a==b)<<"\n";
 
 }
+topit::Dot(int x, int y):
+  IDraw(),
+  d{x,y}
+{}
 
+topit::p_t topit::Dot::begin() const {
+  return d;
+}
+topit::p_t topit::Dot::next(p_t prev) const{
+  if (prev!=begin()){
+    throw std::logic_error("bad impl");
+  }
+  return d;
+}
 bool::operator==(p_t a, p_t b){
   return a.x==b.x && a.y==b.y;
 }
