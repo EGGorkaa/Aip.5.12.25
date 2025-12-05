@@ -1,35 +1,53 @@
 #include <iostream>
 
 namespace topit {
-struct p_t {
-  int x, y;
-};
-struct f_t {
-  p_t aa, bb;
-}; // pod
+  struct p_t {
+    int x, y;
+  };
+  struct f_t {
+    p_t aa, bb;
+  }; // pod
 
-struct IDraw {
-  virtual ~IDraw() = default;
-  virtual p_t begin() const = 0;
-  virtual p_t next(p_t) const = 0;
-};
+  struct IDraw {
+    virtual ~IDraw() = default;
+    virtual p_t begin() const = 0;
+    virtual p_t next(p_t) const = 0;
+  };
 
-struct Dot : IDraw {
-  Dot(int x, int y);
-  explicit Dot(p_t dd);
-  p_t begin() const override;
-  p_t next(p_t) const override;
+  struct Dot : IDraw {
+    Dot(int x, int y);
+    explicit Dot(p_t dd);
+    p_t begin() const override;
+    p_t next(p_t) const override;
 
-  p_t d;
-};
+    p_t d;
+  };
 
-size_t points(const IDraw &d, p_t **pts, size_t &s);
-f_t frame(const p_t *pts, size_t s);
-char *canvas(f_t fr, char fill);
-void paint(char *cnv, f_t fr, p_t p, char fill);
+  struct Line : IDraw
+  {
+    Line(p_t s, p_t e);
+    p_t begin() const override;
+    p_t next(p_t) const override;
 
-bool operator==(p_t, p_t);
-bool operator!=(p_t, p_t);
+    p_t start, end;
+  };
+
+  struct Rectangle : IDraw
+  {
+    Rectangle(p_t upl, p_t botr);
+    p_t begin() const override;
+    p_t next(p_t) const override;
+
+    p_t upperLeft, bottomRight;
+  };
+
+  size_t points(const IDraw &d, p_t **pts, size_t &s);
+  f_t frame(const p_t *pts, size_t s);
+  char *canvas(f_t fr, char fill);
+  void paint(char *cnv, f_t fr, p_t p, char fill);
+
+  bool operator==(p_t, p_t);
+  bool operator!=(p_t, p_t);
 } // namespace topit
 
 int main() {
@@ -80,3 +98,50 @@ topit::p_t topit::Dot::next(p_t prev) const {
 }
 bool topit::operator==(p_t a, p_t b) { return a.x == b.x && a.y == b.y; }
 bool topit::operator!=(p_t a, p_t b) { return !(a == b); }
+topit::Rectangle::Rectangle(p_t upl, p_t botr) : upperLeft(upl), bottomRight(botr){}
+
+topit::p_t topit::Rectangle::begin() const
+{
+  return upperLeft;
+}
+
+topit::p_t topit::Rectangle::next(p_t prev) const
+{
+  if (prev.y == upperLeft.y && upperLeft.x <= prev.x && prev.x < bottomRight.x)
+  {
+    return {prev.x + 1, prev.y};
+  }
+  if (prev.x == bottomRight.x && upperLeft.y >= prev.y && prev.y > bottomRight.y)
+  {
+    return {prev.x, prev.y - 1};
+  }
+  if (prev.y == bottomRight.y && upperLeft.x < prev.x && prev.x <= bottomRight.x)
+  {
+    return {prev.x - 1, prev.y};
+  }
+  if (prev.x == upperLeft.x && upperLeft.y > prev.y && prev.y >= bottomRight.y)
+  {
+    return {prev.x, prev.y + 1};
+  }
+  throw std::logic_error("bad impl");
+}
+
+topit::Line::Line(p_t s, p_t e) : IDraw(), start(s), end(e){}
+
+topit::p_t topit::Line::begin() const
+{
+  return start;
+}
+
+topit::p_t topit::Line::next(p_t prev) const
+{
+  if (prev == end)
+  {
+    return start;
+  }
+  if (prev.y == start.y && start.x <= prev.x && prev.x < end.x)
+  {
+    return {prev.x + 1, prev.y};
+  }
+  throw std::logic_error("bad impl");
+}
