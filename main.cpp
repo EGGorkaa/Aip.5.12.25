@@ -31,7 +31,11 @@ int main()
   std::cout << (a==b)<<"\n";
 
 }
-topit::Dot(int x, int y):
+topit::Dot::Dot(p_t dd):
+  IDraw(),
+  d{dd}
+{}
+topit::Dot::Dot(int x, int y):
   IDraw(),
   d{x,y}
 {}
